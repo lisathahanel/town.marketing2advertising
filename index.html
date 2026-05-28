@@ -325,54 +325,78 @@ body.light-mode .movie-title { background: #007700; color: #fff; }
      (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
 
-<b:if cond='data:blog.pageType == "index"'>
+<p>&nbsp;<span style="color: #0a58ca; font-size: 24px; font-weight: bold; text-align: center;">🔥 📱 Best Apps Online | 💰 Earn Money Fast | 🎓 Global Education | 🏠 Property Listings | 💳 Mobile Payments</span></p>
 
-<div class="news-container">
+<!--===================== PAGES ONLY NETFLIX GRID =====================-->
 
-  <!-- Featured Section: Top 10 Posts -->
-  <div class="featured-movies" id="featured-movie-grid"></div>
-
-</div>
-
-<!--===================== CSS =====================-->
+<!--SEARCH (works for pages too)-->
 <style>
-.news-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 10px;
-  font-family: Arial, sans-serif;
+@keyframes discoGlow {
+  0% { box-shadow: 0 0 5px #ff00ff; }
+  50% { box-shadow: 0 0 15px #00ffff; }
+  100% { box-shadow: 0 0 5px #ff00ff; }
 }
 
-#featured-movie-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+.movie-search {
+  max-width: 520px;
+  margin: 20px auto;
+  text-align: center;
+}
+
+.movie-search input {
+  width: 100%;
+  padding: 16px;
+  font-size: 18px;
+  color: #fff;
+  background: #000;
+  border: 2px solid #ff00ff;
+  border-radius: 50px;
+  outline: none;
+  animation: discoGlow 3s infinite;
+}
+
+.movie-search button {
+  margin-top: 12px;
+  padding: 12px 30px;
+  font-size: 16px;
+  border-radius: 30px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(45deg, #ff00ff, #00ffff, #00ff00);
+  color: #000;
+  font-weight: bold;
+}
+</style>
+
+<form action="/search" class="movie-search" method="get">
+  <input name="q" placeholder="📄 Search pages..." required="" type="text" />
+  <button type="submit">SEARCH</button>
+</form>
+
+<!--GRID-->
+<div id="movie-label-posts"></div>
+
+<style>
+.movie-grid {
+  display: flex;
+  flex-wrap: wrap;
   gap: 20px;
-  margin-bottom: 40px;
+  justify-content: center;
 }
 
 .movie-card {
-  display: flex;
-  flex-direction: column;
-  background: #fff;
+  background: #111;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  transition: transform 0.2s, box-shadow 0.2s;
+  width: calc(33.333% - 13px);
+  transition: 0.3s;
 }
 
-.movie-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.35);
-}
+.movie-card:hover { transform: scale(1.05); }
 
-.poster {
-  width: 100%;
-  height: 250px;
-  position: relative;
-  overflow: hidden;
-}
+.poster { aspect-ratio: 2/3; overflow: hidden; position: relative; }
 
-.poster img {
+.movie-card img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -380,114 +404,150 @@ body.light-mode .movie-title { background: #007700; color: #fff; }
 
 .play-button {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 32px;
+  font-size: 40px;
+  background: #e50914;
   color: #fff;
-  background: rgba(229,9,20,0.85);
   border-radius: 50%;
-  width: 55px;
-  height: 55px;
-  line-height: 55px;
-  text-align: center;
-  box-shadow: 0 0 20px #e50914;
-  pointer-events: none;
+  width: 60px; height: 60px;
+  text-align: center; line-height: 60px;
 }
 
 .movie-title {
-  padding: 12px;
-  font-size: 18px;
-  font-weight: 600;
-  color: #111;
-  line-height: 1.3em;
+  padding: 10px;
+  text-align: center;
+  background: #e50914;
+  color: #fff;
+  font-size: 14px;
 }
 
-.movie-ad {
-  width: 100%;
-  margin: 10px 0;
-  text-align: center;
-}
+/* responsive */
+@media (max-width:1024px){ .movie-card{ width:calc(50% - 10px);} }
+@media (max-width:768px){ .movie-card{ width:100%;} }
 </style>
 
-<!--===================== JavaScript =====================-->
+<!--ADSENSE-->
+<script async="" crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2269884583846743"></script>
+
 <script>
-var allFeedEntries = [];
-var feedsLoaded = 0;
-var totalFeeds = 10; // number of feed URLs
+let pages = [];
+let loadedCount = 0;
 
-function renderMovieFeedRow(json) {
-  if(json.feed && json.feed.entry){
-    allFeedEntries = allFeedEntries.concat(json.feed.entry);
-  }
-  feedsLoaded++;
-  if(feedsLoaded >= totalFeeds){
-    // Sort by newest first
-    allFeedEntries.sort((a,b) => new Date(b.published.$t) - new Date(a.published.$t));
+const chunkSize = 15;
+const container = document.getElementById('movie-label-posts');
 
-    // Featured: top 10 posts
-    var featuredPosts = allFeedEntries.slice(0,10);
-    featuredPosts.forEach((entry, index) => renderMovieCard(entry, "featured-movie-grid", index));
-  }
+// fallback image
+function getPoster(){
+  return "https://source.unsplash.com/300x450/?movie,cinema";
 }
 
-function renderMovieCard(entry, containerId, index){
-  var title = entry.title.$t;
-  var url = entry.link.find(l=>l.rel==='alternate')?.href || '#';
-  var imgUrl = entry.media$thumbnail?.url.replace('/s72-c/', '/s640/') || 
-               entry.content?.$t.match(/<img[^>]+src="([^">]+)"/)?.[1] || 
-               'https://via.placeholder.com/300x450?text=No+Image';
+// LOAD PAGES
+function renderPagesOnly(json){
+  if(!json.feed.entry) return;
 
-  var card = document.createElement('div');
-  card.className = 'movie-card';
-  card.innerHTML = `
-    <a href="${url}" title="${title}">
-      <div class="poster">
-        <img src="${imgUrl}" alt="${title}">
-        <div class="play-button">&#9658;</div>
-      </div>
-      <div class="movie-title">${title}</div>
-    </a>
-  `;
+  pages = json.feed.entry.map(entry => {
 
-  var container = document.getElementById(containerId);
-  container.appendChild(card);
+    let url = '';
+    entry.link.forEach(l=>{
+      if(l.rel === 'alternate') url = l.href;
+    });
 
-  // Ad every 4 posts
-  if((index + 1) % 4 === 0){
-    var adDiv = document.createElement('div');
-    adDiv.className = 'movie-ad';
-    adDiv.innerHTML = `
-      <ins class="adsbygoogle"
-           style="display:block"
-           data-ad-client="ca-pub-2269884583846743"
-           data-ad-slot="2359999321"
-           data-ad-format="auto"
-           data-full-width-responsive="true"></ins>
+    let img = '';
+
+    if(entry.media$thumbnail){
+      img = entry.media$thumbnail.url.replace('/s72-c/','/s640/');
+    } else if(entry.content){
+      let m = entry.content.$t.match(/<img[^>]+src="([^"]+)"/);
+      if(m) img = m[1];
+    }
+
+    if(!img) img = getPoster();
+
+    return {
+      title: entry.title.$t,
+      url: url,
+      img: img,
+      date: new Date(entry.published.$t)
+    };
+  });
+
+  // newest first
+  pages.sort((a,b)=>b.date-a.date);
+
+  container.innerHTML='';
+  loadedCount = 0;
+
+  loadNext();
+}
+
+// DISPLAY
+function loadNext(){
+  let end = Math.min(loadedCount + chunkSize, pages.length);
+
+  let row;
+
+  for(let i=loadedCount;i<end;i++){
+
+    if(i % 3 === 0){
+      row = document.createElement('div');
+      row.className = 'movie-grid';
+    }
+
+    let item = pages[i];
+
+    let card = document.createElement('div');
+    card.className = 'movie-card';
+
+    card.innerHTML = `
+      <a href="${item.url}">
+        <div class="poster">
+          <img src="${item.img}">
+          <div class="play-button">&#9658;</div>
+        </div>
+        <div class="movie-title">${item.title}</div>
+      </a>
     `;
-    container.appendChild(adDiv);
-    (adsbygoogle = window.adsbygoogle || []).push({});
+
+    row.appendChild(card);
+
+    if((i+1)%3===0 || i===end-1){
+      container.appendChild(row);
+    }
   }
+
+  loadedCount = end;
 }
+
+// INFINITE SCROLL
+window.addEventListener('scroll',()=>{
+  if(window.innerHeight + window.scrollY >= document.body.offsetHeight - 300){
+    loadNext();
+  }
+});
 </script>
 
-<!--===================== Load Adsense =====================-->
-<script async="async" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2269884583846743" crossorigin="anonymous"></script>
+<!--PAGES FEED ONLY-->
+<script src="https://www.marketing2advertising.com/feeds/pages/default?alt=json-in-script&amp;callback=renderPagesOnly"></script>
 
-<!--===================== Feeds =====================-->
-<script src="https://www.marketing2advertising.com/feeds/posts/default/-/movies1000?alt=json-in-script&callback=renderMovieFeedRow"></script>
-<script src="https://www.marketing2advertising.com/feeds/posts/default/-/info?alt=json-in-script&callback=renderMovieFeedRow"></script>
-<script src="https://www.marketing2advertising.com/feeds/posts/default/-/Courses?alt=json-in-script&callback=renderMovieFeedRow"></script>
-<script src="https://www.marketing2advertising.com/feeds/posts/default/-/finance?alt=json-in-script&callback=renderMovieFeedRow"></script>
-<script src="https://www.marketing2advertising.com/feeds/posts/default/-/moneypower?alt=json-in-script&callback=renderMovieFeedRow"></script>
-<script src="https://www.marketing2advertising.com/feeds/posts/default/-/storytelling?alt=json-in-script&callback=renderMovieFeedRow"></script>
-<script src="https://www.marketing2advertising.com/feeds/posts/default/-/movies1006?alt=json-in-script&callback=renderMovieFeedRow"></script>
-<script src="https://www.marketing2advertising.com/feeds/posts/default/-/movies1007?alt=json-in-script&callback=renderMovieFeedRow"></script>
-<script src="https://www.marketing2advertising.com/feeds/posts/default/-/movies1008?alt=json-in-script&callback=renderMovieFeedRow"></script>
-<script src="https://www.marketing2advertising.com/feeds/posts/default/-/movies1009?alt=json-in-script&callback=renderMovieFeedRow"></script>
+<div style="background: rgb(241, 248, 255); border-left: 5px solid rgb(10, 88, 202); border-radius: 8px; margin: 20px 0px; padding: 15px;">
+<h2 style="text-align: center;">📱 Apps Online | 💰 Earn Money</h2>
+<h2 style="text-align: center;">🎓 Global Education | 🏠 Property Deals</h2>
+<h2 style="text-align: center;">💳 Payment Systems | 💼 Opportunities</h2>
+</div>
 
-</b:if>
+<div style="text-align: center;">
+<img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj6sridvRvqhymjcwqy7xrZnGVbL1yZ3kTEMqsY49ykbtCP-Nxn40Z4N18e9t14TB2EPALcPsK9zmoI8Ai7uUrE6Og3HAQui95cE4Hz6mmwZr0UGX6IIFr6hED7mv3hAxvd3YJA-Z0-wnrZ8vSN9ipUrU7iQI3psg9Mb8UvukZuUf_UuUKvoZmOCdmAqn50/w320-h295/vj-Junior-old.html%20-%20Google%20Chrome.png" width="320" />
+</div>
 
+<!--===================== MOVIE GRID =====================-->
+<div class="movie-grid-wrapper">
+  <h2 class="grid-title">📺Bu Firimu | 💰 Finance - 🏠 Real Estate - Tech | Marketing2Advertising is the perfect place to reset, recharge, and enjoy. 🎧📚✨
+</h2>
+  
+
+
+</div>
 
 
 <b:if cond='data:blog.pageType != &quot;static_page&quot;'>
